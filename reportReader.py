@@ -59,6 +59,7 @@ ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)"]
 
 # File path for current development
 PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel.rep"
+OUTPATH = "Z:\\adit\\Desktop\\LARFlows\\ReportOutput.csv"
 
 
 def riverNode(river, reach, rs, swmm = ""):
@@ -69,15 +70,54 @@ def riverNode(river, reach, rs, swmm = ""):
 
 # Nodes to look for
 NODES = [
-    riverNode("Upper LAR", "Above RH", "70185", "F34D"),
+    #riverNode("Upper LA River", "Above RH", "70185*", "F34D"),
     riverNode("Rio Hondo Chnl", "RHC", "7000", "F45B"),
-    riverNode("Upper LAR", "Above RH", "157606.4", "GLEN"),
+    riverNode("Upper LA River", "Above RH", "157606.4", "GLEN"),
     riverNode("LA River", "Below CC", "21500", "F319"),
     riverNode("Compton Creek", "CC", "22616", "F37B"),
-    riverNode("Upper LAR", "Above RH", "195289.1", "F300"),
-    riverNode("Upper LAR", "Above RH", "168989.7", "LA14")
+    riverNode("Upper LA River", "Above RH", "195289.1", "F300"),
+    riverNode("Upper LA River", "Above RH", "168989.7", "LA14")
     # Keep adding these, but this is enough for initial development & testing
 ]
+
+def getDataForNodes(xsData, nodes):
+    # Extract the relevant data from the parsed-out data
+    keys = [" ".join([node["river"], node["reach"], node["rs"]]) for node in nodes]
+    entries = [xsData[key] for key in keys]
+    return entries
+
+def makeNodePfDataString(nodeData, pf, riverNode, entries = ENTRIES):
+    # Make a CSV line of the relevant data from the node, for the given profile number
+    # In order to not be selective, just set entries to be all of the keys for an arbitrary cross-section;
+    # specifying entries is necessary, however, to ensure a consistent order
+    outData = [riverNode["river"], riverNode["reach"], riverNode["rs"], pf]
+    for entry in entries:
+        if entry in nodeData.keys():
+            outData.append(nodeData[entry])
+        else:
+            outData.append("")
+    return ",".join(outData)
+
+def buildCSV(xsData, nodes, selective = False, entries = ENTRIES):
+    # Build the CSV file for the relevant nodes and, if selective, relevant entries
+    # If not selective, entries will simply be the entries of the first node
+    entriesSet = selective
+    data = getDataForNodes(xsData, nodes)
+    output = []
+    for datum in data:
+        pfs = [k for k in datum.keys() if not k in ["river", "reach", "rs"]] # PF numbers only
+        for pf in pfs:
+            nodeData = datum[pf]
+            if not entriesSet:
+                entries = nodeData.keys() # To keep a specific order
+                entriesSet = True
+            output.append(makeNodePfDataString(nodeData, pf, datum, entries))
+    output = ["River,Reach,RS,Profile," + ",".join(entries)] + output
+    return "\n".join(output)
+
+def convertCSV(nodes, selective = False, entries = ENTRIES, inpath = PATH, outpath = OUTPATH):
+    with open(outpath, "w") as f:
+        f.write(buildCSV(parseFile(getReportFile(inpath)), nodes, selective, entries))
 
 def getReportFile(filename):
     with open(filename, "r") as f:
@@ -138,4 +178,4 @@ def parseFile(text):
     return data
 
 if __name__ == "__main__":
-    parseFile(getReportFile(PATH))
+    convertCSV(NODES, selective = True)
