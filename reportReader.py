@@ -53,3 +53,89 @@ CROSS SECTION OUTPUT  Profile #PF 3
 <... same items as PF 1>
 Warning: The cross-section end points had to be extended vertically for the computed water surface.
 """
+
+# Entries to look for
+ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)"]
+
+# File path for current development
+PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel.rep"
+
+
+def riverNode(river, reach, rs, swmm = ""):
+    # This just makes a dict; defining a function purely for convenience
+    # swmm = corresponding SWMM node; this is specific to the LARFlows project and can be ignored by other users
+    return {"river": river, "reach": reach, "rs": rs, "swmm": swmm}
+
+
+# Nodes to look for
+NODES = [
+    riverNode("Upper LAR", "Above RH", "70185", "F34D"),
+    riverNode("Rio Hondo Chnl", "RHC", "7000", "F45B"),
+    riverNode("Upper LAR", "Above RH", "157606.4", "GLEN"),
+    riverNode("LA River", "Below CC", "21500", "F319"),
+    riverNode("Compton Creek", "CC", "22616", "F37B"),
+    riverNode("Upper LAR", "Above RH", "195289.1", "F300"),
+    riverNode("Upper LAR", "Above RH", "168989.7", "LA14")
+    # Keep adding these, but this is enough for initial development & testing
+]
+
+def getReportFile(filename):
+    with open(filename, "r") as f:
+        return f.read()
+
+def crossSections(text):
+    # Split file content into separate cross sections
+    # CROSS SECTION on its own shows up a lot, but it's only followed by two blank spaces when it's a new XS
+    return text.split("CROSS SECTION  ")
+
+def nodeData(xs):
+    # Get the node information (river, reach, rs) for a given cross-section
+    # Information is on the first two lines after CROSS SECTION
+    lines = [ln for ln in xs.split("\n") if ln.strip() != ""][0:2]
+    river = " ".join([i for i in lines[0].split(" ") if i != ""][1:])   # The first thing is RIVER:;
+                                                                        # the rest is the river name
+    ln2dat = [i for i in lines[1].split(" ") if i != ""]
+    ln2splitIndex = ln2dat.index("RS:") # Where the reach stops and the RS begins
+    reach = " ".join(ln2dat[1:ln2splitIndex]) # Everything before RS: except for REACH:, which starts the line
+    rs = ln2dat[ln2splitIndex + 1] # No spaces in RS, it's a number
+    return {"river": river, "reach": reach, "rs": rs}
+
+def profiles(xs):
+    # Split a cross section into profiles
+    return xs.split("Profile #PF")
+
+def entries(profile):
+    # Data starts on row 3 and continues through row 17
+    data = profile.split("\n")[2:17]
+    output = {}
+    for row in data:
+        items = [i.strip() for i in row.split("  ") if i != ""] # Separate items are always separated by multiple spaces
+        # There are two rows that have three entries for the right-hand items, but we don't need either, so
+        # we can ignore that.
+        # Otherwise, they are all two key-value pairs.
+        if len(items) >= 4: # Sometimes something seems to be missing from the row
+            output[items[0]] = items[1]
+            output[items[2]] = items[3]
+    return output
+
+def parseXs(xs):
+    # Parse the cross-section, returning node data, profile number, and entries
+    data = nodeData(xs)
+    profs = profiles(xs)[1:]
+    for prof in profs:
+        pnum = prof.split("\n")[0].strip() # First line has the profile number
+        data[pnum] = entries(prof)
+    return data
+
+def parseFile(text):
+    # Extract cross-section data from file
+    xses = crossSections(text)
+    xses = [xs for xs in xses if "CROSS SECTION OUTPUT" in xs] # Filter out non-cross-section entries at beginning
+    data = {}
+    for xs in xses:
+        xsData = parseXs(xs)
+        data[" ".join([xsData["river"], xsData["reach"], xsData["rs"]])] = xsData
+    return data
+
+if __name__ == "__main__":
+    parseFile(getReportFile(PATH))
