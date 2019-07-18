@@ -76,8 +76,32 @@ NODES = [
     riverNode("LA River", "Below CC", "21500", "F319"),
     riverNode("Compton Creek", "CC", "22616", "F37B"),
     riverNode("Upper LA River", "Above RH", "195289.1", "F300"),
-    riverNode("Upper LA River", "Above RH", "168989.7", "LA14")
-    # Keep adding these, but this is enough for initial development & testing
+    riverNode("Upper LA River", "Above RH", "168989.7", "LA14"),
+    riverNode("Upper LA River", "Above RH", "199036.7", "LA17"),
+    riverNode("LA River", "Below CC", "15700", "LA2"),
+    riverNode("Rio Hondo Chnl", "RHC", "15600", "RHD2"),
+    riverNode("Upper LA River", "Above RH", "213974.*", "LA19"),
+    riverNode("Upper LA River", "Above RH", "207769", "LA18"),
+    riverNode("Upper LA River", "Above RH", "186920.5", "LA16"),
+    riverNode("Upper LA River", "Above RH", "177244", "LA15"),
+    riverNode("Upper LA River", "Above RH", "161809", "LA13"),
+    riverNode("Upper LA River", "Above RH", "150089.6", "LA12"),
+    riverNode("Upper LA River", "Above RH", "143272.1", "LA11"),
+    riverNode("Upper LA River", "Above RH", "137061.4", "LA10"),
+    riverNode("Upper LA River", "Above RH", "115507", "LA8"),
+    riverNode("Upper LA River", "Above RH", "107352", "LA7"),
+    riverNode("Upper LA River", "Above RH", "88311", "LA5"),
+    riverNode("Upper LA River", "RH to CC", "52928", "LA4"),
+    riverNode("Upper LA River", "RH to CC", "38700", "LA3"),
+    riverNode("Upper LA River", "Above RH", "96076", "LA6"),
+    riverNode("LA River", "Below CC", "1600", "LA1"),
+    riverNode("Compton Creek", "CC", "33669.4*", "CP2"),
+    riverNode("Compton Creek", "CC", "44173.9*", "CP3"),
+    riverNode("Upper LA River", "Above RH", "127537.6", "LA9"),
+    riverNode("Compton Creek", "CC", "52494.08", "CP4"),
+    riverNode("Rio Hondo Chnl", "RHC", "30500", "RHD3"),
+    riverNode("Upper LA River", "Above RH", "225805", "11092450"),
+    riverNode("Rio Hondo Chnl", "RHC", "44113", "11102300")
 ]
 
 def getDataForNodes(xsData, nodes):
