@@ -92,7 +92,7 @@ def mkBoundaryHeader(river, reach, profile):
     # River/reach/profile specification for boundary conditions
     return "Boundary for River Rch & Prof#=%s,%s%s, %d" % (river,reach, " " * (16 - len(reach)), profile)
 
-def mkBoundaryData(upname, dname, uparam, dparam):
+def mkBoundaryData(upname, dname, uparam="", dparam=""):
     # boundary condition data
     types = {"Known WS": 1, "Critical Depth": 2, "Normal Depth": 3, "Junction": 0}
     data = {1: "Known WS", 3: "Slope"}
@@ -162,24 +162,6 @@ def buildFile(nprofiles, profiledata, bounddata, title="Flow 01", ver="5.0.7", e
             bheader = mkBoundaryHeader(boundspec[0], boundspec[1], pn + 1)
             bdata = bounddata[",".join(boundspec)](pn + 1, flows[pn])
             bounds.append(bheader)
-            bounds.append(bdata)
+            bounds = bounds + bdata
     return "\n".join([header] + flowdata + bounds + [end])
 
-def test():
-    nprofiles = 5
-    profiledata = {
-        mkFlowHeader("R1", "R1A", "5"): [1,2,3,4,5],
-        mkFlowHeader("R2", "R2A", "3"): [5,4,3,2,1],
-        mkFlowHeader("R1", "R1B", "1"): [6,6,6,6,6]
-    }
-    def mkbounds(a, b):
-        return "Up Type= 0\nDn Type= 0"
-    bounddata = {
-        "R1,R1A": mkbounds,
-        "R2,R2A": mkbounds,
-        "R1,R1B": mkbounds
-    }
-    return buildFile(nprofiles, profiledata, bounddata)
-
-if __name__ == "__main__":
-    test()
