@@ -70,7 +70,7 @@ def riverNode(river, reach, rs, swmm = ""):
 
 # Nodes to look for
 NODES = [
-    #riverNode("Upper LA River", "Above RH", "70185*", "F34D"),
+    riverNode("Upper LA River", "Above RH", "70185*", "F34D"),
     riverNode("Rio Hondo Chnl", "RHC", "7000", "F45B"),
     riverNode("Upper LA River", "Above RH", "157606.4", "GLEN"),
     riverNode("LA River", "Below CC", "21500", "F319"),
@@ -107,7 +107,10 @@ NODES = [
 def getDataForNodes(xsData, nodes):
     # Extract the relevant data from the parsed-out data
     keys = [" ".join([node["river"], node["reach"], node["rs"]]) for node in nodes]
-    entries = [xsData[key] for key in keys]
+    availKeys = [key for key in keys if key in xsData.keys()]
+    entries = [xsData[key] for key in availKeys]
+    for key in [key for key in keys if not key in availKeys]:
+        print("Warning: node %s not found in report data--skipping." % key)
     return entries
 
 def makeNodePfDataString(nodeData, pf, riverNode, entries = ENTRIES):
