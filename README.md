@@ -8,6 +8,11 @@ The `profileWriter` script can be used to generate a flow profiles file (.fxx) w
 of profiles and reaches and any set of flow volumes for each point.  The `buildFile` function
 contains the main functionality and will build the complete contents of a flow file.
 
+### General Notes
+Minor manual intervention is currently required if the output file is not named to match an existing
+set of flow data, as HEC-RAS will not be able to find it.  In order to fix this, edit the `.prj` project
+file and add an entry for the new flow file in with the other flow file entries.
+
 ### `buildFile` Inputs Summary
 `buildFile` requires the following inputs:
 
