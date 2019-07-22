@@ -3,6 +3,9 @@ A set of Python scripts designed to automatically produce and process key input 
 output files for HEC-RAS.  Since HEC-RAS can run many flow profiles in parallel, this
 allows users to run HEC-RAS on large volumes of data with minimal manual intervention.
 
+See `main.py` for example usage (the developer's actual usage) of both writing profiles and reading
+reports.
+
 ## Writing Profiles
 The `profileWriter` script can be used to generate a flow profiles file (.fxx) with any number
 of profiles and reaches and any set of flow volumes for each point.  The `buildFile` function
