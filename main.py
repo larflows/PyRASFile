@@ -1,5 +1,6 @@
 from profileWriter import *
 from reportReader import *
+from utils import *
 
 # Entries to look for
 ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)"]
@@ -88,9 +89,30 @@ text = buildFile(125, flowdata, bounds, title="GenFlow 1-10Kcfs 1-125")
 
 if __name__ == "__main__":
     generate = False
-    parse = True
+    parse = False
+    makeCSV = True
     if generate:
         with open("V:\\LosAngelesProjectsData\\HEC-RAS\\Full Model\\FullModel.f05", "w") as f:
             f.write(text)
     if parse:
         convertCSV(NODES, entries = ENTRIES, inpath = PATH, outpath = OUTPATH, selective = True)
+    if makeCSV:
+        flows = [1, 10, 100, 1000, 10000]
+        nodes = [
+            {"river": "Compton Creek", "reach": "CC", "rs": "52494.08"},
+            {"river": "LA River", "reach": "Below CC", "rs": "29266"},
+            {"river": "Rio Hondo Chnl", "reach": "RHC", "rs": "44113"},
+            {"river": "Upper LA River", "reach": "Above RH", "rs": "225805.0"},
+            {"river": "Upper LA River", "reach": "RH to CC", "rs": "63900.3*"}
+        ]
+        upstreamNodes = {
+            mkFlowHeader(nodes[1]["river"], nodes[1]["reach"], nodes[1]["rs"]):
+                [mkFlowHeader(nodes[0]["river"], nodes[0]["reach"], nodes[0]["rs"]),
+                                     mkFlowHeader(nodes[2]["river"], nodes[2]["reach"], nodes[2]["rs"]),
+                                     mkFlowHeader(nodes[3]["river"], nodes[3]["reach"], nodes[3]["rs"])],
+            mkFlowHeader(nodes[4]["river"], nodes[4]["reach"], nodes[4]["rs"]):
+                [mkFlowHeader(nodes[2]["river"], nodes[2]["reach"], nodes[2]["rs"]),
+                                     mkFlowHeader(nodes[3]["river"], nodes[3]["reach"], nodes[3]["rs"])]
+        }
+        path = "Z:\\adit\\Desktop\\LARFlows\\code\\pyRasFile\\FlowPerms.csv"
+        generatePermutedFlows(flows, nodes, upstreamNodes, write = True, path = path)
