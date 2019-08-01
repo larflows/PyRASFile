@@ -8,7 +8,7 @@ that are not large or complex enough to merit their own module.
 from profileWriter import mkFlowHeader
 from itertools import permutations
 
-def generatePermutedFlows(flows, nodes, upstreamNodes, write = False, path = ""):
+def generatePermutedFlows(flows, nodes, upstreamNodes, write = False, path = "", debug = False):
     """
     Generate all possible permutations of the given flows across the relevant nodes,
     with the constraint that downstream nodes will have a flow that is the sum of the nodes
@@ -38,6 +38,8 @@ def generatePermutedFlows(flows, nodes, upstreamNodes, write = False, path = "")
     nuc = len(noUpstream)
     nflows = len(flows)
     nperms = nflows ** nuc
+    if debug:
+        print("N. Permutations: %d" % nperms)
     # perms = permutations(flows, nuc)
     perms = [[]] * nuc
     """
@@ -62,12 +64,30 @@ def generatePermutedFlows(flows, nodes, upstreamNodes, write = False, path = "")
     
     This runs across the number of rows nuc, and within each row, index iterates from 0 to nperms
     """
+    # Oddly, each index of permutations gets longer -- e.g. 125, 250, 375.  Why?
+    # It seems like each set of these may be getting appended to *all* sets of
+    # permutations.  This makes no sense at all.  It is what is happening, however,
+    # as all the permutations end up the same.
     for nn in range(0, nuc):
         for ix in range(0, nperms):
             index = (ix // (nflows ** (nuc - nn - 1))) % nflows
-            perms[nn].append(flows[index])
+            # Yes, this is weird, but otherwise it was appending it to *everything*
+            # Because Pythonic weirdness, I guess?  I've seen it behave oddly before,
+            # just not in this particular way.
+            perms[nn] = perms[nn] + [flows[index]]
+    if debug:
+        for perm in perms:
+            print("Permutation length: %d" % len(perm))
+        permsEqual = True
+        for perm in perms:
+            for perm2 in perms:
+                if perm != perm2:
+                    permsEqual = False
+        print("Permutations are equal: %s" % str(permsEqual))
 
     # Assign each set of flows to a node
+    # BUG: for some reason these are getting written to 3x more than they should, and it's happening
+    # here at the latest
     index = 0
     for key in noUpstream:
         nodeKeys[key]["flows"] = perms[index]
@@ -83,7 +103,8 @@ def generatePermutedFlows(flows, nodes, upstreamNodes, write = False, path = "")
                 nodeKeys[key]["flows"].append(sum([nodeKeys[u]["flows"][ix] for u in upstream]))
     # Need to restructure the dict to be {node key: [flows]}
     output = {}
-    for key in nodeKeys.keys():
+    # for key in nodeKeys.keys():
+    for key in noUpstream:
         output[key] = nodeKeys[key]["flows"]
 
     # Set up the CSV, if needed

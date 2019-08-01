@@ -70,21 +70,34 @@ def getDataForNodes(xsData, nodes):
         print("Warning: node %s not found in report data--skipping." % key)
     return entries
 
-def makeNodePfDataString(nodeData, pf, riverNode, entries):
+def makeNodePfDataString(nodeData, pf, riverNode, entries, swmm = False, nodes = []):
     # Make a CSV line of the relevant data from the node, for the given profile number
     # In order to not be selective, just set entries to be all of the keys for an arbitrary cross-section;
     # specifying entries is necessary, however, to ensure a consistent order
+    # If swmm, also include the SWMM node
     outData = [riverNode["river"], riverNode["reach"], riverNode["rs"], pf]
     for entry in entries:
         if entry in nodeData.keys():
             outData.append(nodeData[entry])
         else:
             outData.append("")
+    # Find what SWMM node it corresponds to, if necessary
+    if swmm:
+        found = False
+        for node in nodes:
+            if found:
+                break
+            if node["river"] == riverNode["river"] and node["reach"] == riverNode["reach"] and node["rs"] == riverNode["rs"]:
+                found = True
+                outData.append(node["swmm"])
+        if not found:
+            outData.append("")
     return ",".join(outData)
 
-def buildCSV(xsData, nodes, entries, selective = False):
+def buildCSV(xsData, nodes, entries, selective = False, swmm = False):
     # Build the CSV file for the relevant nodes and, if selective, relevant entries
     # If not selective, entries will simply be the entries of the first node
+    # If swmm, data will also include which swmm node the entry corresponds to
     entriesSet = selective
     data = getDataForNodes(xsData, nodes)
     output = []
@@ -95,13 +108,13 @@ def buildCSV(xsData, nodes, entries, selective = False):
             if not entriesSet:
                 entries = nodeData.keys() # To keep a specific order
                 entriesSet = True
-            output.append(makeNodePfDataString(nodeData, pf, datum, entries))
-    output = ["River,Reach,RS,Profile," + ",".join(entries)] + output
+            output.append(makeNodePfDataString(nodeData, pf, datum, entries, swmm, nodes))
+    output = ["River,Reach,RS,Profile," + ",".join(entries) + ",SWMM Node" if swmm else ""] + output
     return "\n".join(output)
 
-def convertCSV(nodes, entries, inpath, outpath, selective = False):
+def convertCSV(nodes, entries, inpath, outpath, selective = False, swmm = False):
     with open(outpath, "w") as f:
-        f.write(buildCSV(parseFile(getReportFile(inpath)), nodes, selective = selective, entries = entries))
+        f.write(buildCSV(parseFile(getReportFile(inpath)), nodes, selective = selective, entries = entries, swmm = swmm))
 
 def getReportFile(filename):
     with open(filename, "r") as f:
@@ -156,7 +169,10 @@ def parseFile(text):
     xses = crossSections(text)
     xses = [xs for xs in xses if "CROSS SECTION OUTPUT" in xs] # Filter out non-cross-section entries at beginning
     data = {}
-    for xs in xses:
+    while len(xses) > 0:
+        xs = xses[0]
         xsData = parseXs(xs)
         data[" ".join([xsData["river"], xsData["reach"], xsData["rs"]])] = xsData
+        # Shrink the list as the program goes through it, in order to reduce memory usage
+        xses = xses[1:]
     return data

@@ -7,7 +7,7 @@ ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)"]
 
 # File path for current development
 PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel.rep"
-OUTPATH = "Z:\\adit\\Desktop\\LARFlows\\Data Processing\\ReportOutput.csv"
+OUTPATH = "Z:\\adit\\Desktop\\LARFlows\\Data Processing\\Calibration\\HecRasOutput.csv"
 
 
 # Nodes to look for
@@ -46,6 +46,14 @@ NODES = [
     riverNode("Rio Hondo Chnl", "RHC", "44113", "11102300")
 ]
 
+flowNodes = [
+    riverNode("Compton Creek", "CC", "52494.08"),
+    riverNode("LA River", "Below CC", "29266"),
+    riverNode("Rio Hondo Chnl", "RHC", "44113"),
+    riverNode("Upper LA River", "Above RH", "225805.0"),
+    riverNode("Upper LA River", "RH to CC", "63900.3*")
+]
+
 
 flowRanges = [1, 10, 100, 1000, 10000]
 upstreamFlows = [[], [], []]
@@ -61,13 +69,37 @@ downstreamFlows = [
     [upstreamFlows[0][i] + upstreamFlows[1][i] + upstreamFlows[2][i] for i in range(0, 125)]
 ]
 
-flowdata = {
+"""
+The flow range at the bottom appears to be about up to 70,000 cfs; let's say up to
+50,000 cfs in each of the upstream reaches.  If I run 100 profiles on a log scale,
+this makes powers of about 1.12.
+"""
+
+upstreamFlowRange = [1.12 ** i for i in range(0, 100)]
+
+flowdata = {}
+for node in flowNodes:
+    river = node["river"]
+    reach = node["reach"]
+    rs = node["rs"]
+    key = mkFlowHeader(river, reach, rs)
+    # Upstream and downstream flows
+    flows = {
+        "Above RH": upstreamFlowRange,
+        "RHC": upstreamFlowRange,
+        "CC": upstreamFlowRange,
+        "RH to CC": [2 * i for i in upstreamFlowRange],
+        "Below CC": [3 * i for i in upstreamFlowRange]
+    }[reach]
+    flowdata[key] = flows
+
+"""flowdata = {
     "River Rch & RM=Compton Creek,CC              ,52494.08": upstreamFlows[0],
     "River Rch & RM=LA River,Below CC        ,29266": downstreamFlows[1],
     "River Rch & RM=Rio Hondo Chnl,RHC             ,44113": upstreamFlows[1],
     "River Rch & RM=Upper LA River,Above RH        ,225805.0": upstreamFlows[2],
     "River Rch & RM=Upper LA River,RH to CC        ,63900.3*": downstreamFlows[0]
-}
+}"""
 
 def mkRegBound(pn, flow):
     return mkBoundaryData("Junction", "Junction", "", "")
@@ -85,17 +117,17 @@ bounds = {
     "Upper LA River,RH to CC": mkRegBound
 }
 
-text = buildFile(125, flowdata, bounds, title="GenFlow 1-10Kcfs 1-125")
+text = buildFile(100, flowdata, bounds, title="GenFlow Preliminary 1-100")
 
 if __name__ == "__main__":
     generate = False
-    parse = False
-    makeCSV = True
+    parse = True
+    makeCSV = False
     if generate:
         with open("V:\\LosAngelesProjectsData\\HEC-RAS\\Full Model\\FullModel.f05", "w") as f:
             f.write(text)
     if parse:
-        convertCSV(NODES, entries = ENTRIES, inpath = PATH, outpath = OUTPATH, selective = True)
+        convertCSV(NODES, entries = ENTRIES, inpath = PATH, outpath = OUTPATH, selective = True, swmm = True)
     if makeCSV:
         flows = [1, 10, 100, 1000, 10000]
         nodes = [
@@ -115,4 +147,6 @@ if __name__ == "__main__":
                                      mkFlowHeader(nodes[3]["river"], nodes[3]["reach"], nodes[3]["rs"])]
         }
         path = "Z:\\adit\\Desktop\\LARFlows\\code\\pyRasFile\\FlowPerms.csv"
-        generatePermutedFlows(flows, nodes, upstreamNodes, write = True, path = path)
+        perms = generatePermutedFlows(flows, nodes, upstreamNodes, write = True, path = path, debug = True)
+        for key in perms:
+            print("%s: %d" % (key, len(perms[key])))
