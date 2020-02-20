@@ -115,7 +115,7 @@ def mkFlowHeader(river, reach, station):
 
 def mkFlowData(flows):
     # Flow data
-    flowStrs = [str(flow) for flow in flows]
+    flowStrs = ["%5.1f" % flow for flow in flows] # Avoid the strings being too long
     flowStrs = [" " * (8-len(flow)) + flow for flow in flowStrs]
     flowRows = []
     prev = 0

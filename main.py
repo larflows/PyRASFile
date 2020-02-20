@@ -1,13 +1,15 @@
 from profileWriter import *
 from reportReader import *
 from utils import *
+from csvReader import *
+import sys
 
 # Entries to look for
-ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)"]
+ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)", "Shear (lb/sq ft)"]
 
 # File path for current development
-PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel.rep"
-OUTPATH = "Z:\\adit\\Desktop\\LARFlows\\Data Processing\\Calibration\\HecRasOutput.csv"
+PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel-HF.rep"
+OUTPATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Docs_Results\\HFResults.csv"
 
 
 # Nodes to look for
@@ -23,10 +25,10 @@ NODES = [
     riverNode("LA River", "Below CC", "15700", "LA2"),
     riverNode("Rio Hondo Chnl", "RHC", "15600", "RHD2"),
     riverNode("Upper LA River", "Above RH", "213974.*", "LA19"),
-    riverNode("Upper LA River", "Above RH", "207769", "LA18"),
+    riverNode("Upper LA River", "Above RH", "207769.0", "LA18"),
     riverNode("Upper LA River", "Above RH", "186920.5", "LA16"),
-    riverNode("Upper LA River", "Above RH", "177244", "LA15"),
-    riverNode("Upper LA River", "Above RH", "161809", "LA13"),
+    riverNode("Upper LA River", "Above RH", "177244.0", "LA15"),
+    riverNode("Upper LA River", "Above RH", "161809.0", "LA13"),
     riverNode("Upper LA River", "Above RH", "150089.6", "LA12"),
     riverNode("Upper LA River", "Above RH", "143272.1", "LA11"),
     riverNode("Upper LA River", "Above RH", "137061.4", "LA10"),
@@ -42,8 +44,11 @@ NODES = [
     riverNode("Upper LA River", "Above RH", "127537.6", "LA9"),
     riverNode("Compton Creek", "CC", "52494.08", "CP4"),
     riverNode("Rio Hondo Chnl", "RHC", "30500", "RHD3"),
-    riverNode("Upper LA River", "Above RH", "225805", "11092450"),
-    riverNode("Rio Hondo Chnl", "RHC", "44113", "11102300")
+    riverNode("Upper LA River", "Above RH", "225805.0", "11092450"),
+    riverNode("Rio Hondo Chnl", "RHC", "44113", "11102300"),
+    riverNode("Upper LA River", "Above RH", "128608", "F57C"),
+    riverNode("Compton Creek", "CC", "7927", "CP1"),
+    riverNode("Rio Hondo Chnl", "RHC", "914", "RHD1")
 ]
 
 flowNodes = [
@@ -75,7 +80,7 @@ The flow range at the bottom appears to be about up to 70,000 cfs; let's say up 
 this makes powers of about 1.12.
 """
 
-upstreamFlowRange = [1.12 ** i for i in range(0, 100)]
+upstreamFlowRange = [1.1 ** i for i in range(0, 100)]
 
 flowdata = {}
 for node in flowNodes:
@@ -105,7 +110,7 @@ def mkRegBound(pn, flow):
     return mkBoundaryData("Junction", "Junction", "", "")
 
 def mkBottomBound(pn, flow):
-    return mkBoundaryData("Junction", "Known WS", "", "1.4")
+    return mkBoundaryData("Junction", "Normal Depth", "", "0.001")
     # F319 seems to always be around 1.3-1.5 ft deep
     # F319 = LAR 21500, just a few miles above the estuary, so probably a reasonable basis
 
@@ -120,10 +125,19 @@ bounds = {
 text = buildFile(100, flowdata, bounds, title="GenFlow Preliminary 1-100")
 
 if __name__ == "__main__":
-    generate = False
-    parse = True
-    makeCSV = False
+    which = ""
+    if len(sys.argv) > 1:
+        which = sys.argv[1]
+    else:
+        print("Generate: -g; parse: -p; make CSV: -m; generate from CSV: -gr")
+    generate = which == "-g" or which == "-gr"
+    parse = which == "-p"
+    makeCSV = which == "-m"
+    readCSV = which == "-gr"
     if generate:
+        if readCSV:
+            text = buildFile(88, csvToFlowData("Z:\\adit\\Desktop\\LARFlows\\code\pyRasFile\\empiricalFlows.csv"), bounds, title="Empirical Flows 2-88")
+            # text = buildFile(100, flowdata, bounds, title = "Flow Range 10k - 100")
         with open("V:\\LosAngelesProjectsData\\HEC-RAS\\Full Model\\FullModel.f05", "w") as f:
             f.write(text)
     if parse:

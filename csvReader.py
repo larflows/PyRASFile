@@ -13,7 +13,7 @@ river,reach,rs,profilenumber,flow
 Where flow is a floating-point value in cubic feet per second, profilenumber is an integer,
 and the remaining entries are strings.
 
-The order of these can be varied (if specified in the relevant functions or if a header is included,
+The order of these can be varied (if specified in the relevant functions or if a header is included),
 but the names must remain the same.
 """
 
@@ -48,6 +48,9 @@ def parseCSV(csvList, header = True, columns = [], types = False, coltypes = {},
     for row in csvList[start:]:
         count = len(row)
         if count != cols:
+            if row == [] or row == [""]:
+                # Empty row, just skip it
+                continue
             raise ValueError("Error: number of columns is not consistent in row: %s" % row)
         out = {}
         for i in range(0, count):
@@ -99,7 +102,7 @@ def makeFlowData(csvDict):
     for key in result.keys():
         # Make sure they're in the correct order
         entry = result[key]
-        keys = entry.keys()
+        keys = list(entry.keys())
         keys.sort()
         result[key] = [entry[k] for k in keys]
     return result
