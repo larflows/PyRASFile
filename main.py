@@ -5,20 +5,20 @@ from csvReader import *
 import sys
 
 # Entries to look for
-ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)", "Shear (lb/sq ft)"]
+ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)", "Shear (lb/sq ft)", "Stream Power (lb/ft s)"]
 
 # File path for current development
-PATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Full MODEL\\FullModel-HF.rep"
-OUTPATH = "V:\\LosAngelesProjectsData\\HEC-RAS\\Docs_Results\\HFResults.csv"
+PATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\Reports\\FullModel-HF-0904.rep"
+OUTPATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\RatingCurves\\HFResultsRep.csv"
 
 
 # Nodes to look for
-NODES = [
+"""NODES = [
     riverNode("Upper LA River", "Above RH", "70185*", "F34D"),
     riverNode("Rio Hondo Chnl", "RHC", "7000", "F45B"),
-    riverNode("Upper LA River", "Above RH", "157606.4", "GLEN"),
+    riverNode("Upper LA River", "Above RH", "156292.5", "GLEN"),
     riverNode("LA River", "Below CC", "21500", "F319"),
-    riverNode("Compton Creek", "CC", "22616", "F37B"),
+    riverNode("Compton Creek", "CC", "16327.43", "F37B"),
     riverNode("Upper LA River", "Above RH", "195289.1", "F300"),
     riverNode("Upper LA River", "Above RH", "168989.7", "LA14"),
     riverNode("Upper LA River", "Above RH", "199036.7", "LA17"),
@@ -39,17 +39,65 @@ NODES = [
     riverNode("Upper LA River", "RH to CC", "38700", "LA3"),
     riverNode("Upper LA River", "Above RH", "96076", "LA6"),
     riverNode("LA River", "Below CC", "1600", "LA1"),
-    riverNode("Compton Creek", "CC", "33669.4*", "CP2"),
+    riverNode("Compton Creek", "CC", "36442.8*", "CP2"),
     riverNode("Compton Creek", "CC", "44173.9*", "CP3"),
     riverNode("Upper LA River", "Above RH", "127537.6", "LA9"),
     riverNode("Compton Creek", "CC", "52494.08", "CP4"),
     riverNode("Rio Hondo Chnl", "RHC", "30500", "RHD3"),
     riverNode("Upper LA River", "Above RH", "225805.0", "11092450"),
-    riverNode("Rio Hondo Chnl", "RHC", "44113", "11102300"),
+    riverNode("Rio Hondo Chnl", "RHC", "42000", "11102300"),
     riverNode("Upper LA River", "Above RH", "128608", "F57C"),
-    riverNode("Compton Creek", "CC", "7927", "CP1"),
-    riverNode("Rio Hondo Chnl", "RHC", "914", "RHD1")
+    riverNode("LA River", "Below CC", "29266", "CP1"),
+    riverNode("Upper LA River", "RH to CC", "63900.3*", "RHD1"),
+    riverNode("Upper LA River", "Above RH", "166819.3", "NLAR1"),
+    riverNode("Upper LA River", "Above RH", "165671.8", "NLAR2"),
+    riverNode("Upper LA River", "Above RH", "168511.5", "NLAR3"),
+    riverNode("Upper LA River", "Above RH", "167812.3", "NLAR4"),
+    riverNode("Upper LA River", "Above RH", "152989.7", "NLAR5"),
+    riverNode("Upper LA River", "Above RH", "148517", "NLAR6"),
+    riverNode("Upper LA River", "Above RH", "168225.7", "NLAR7"),
+    riverNode("Upper LA River", "Above RH", "159208.2", "NLAR8"),
+    riverNode("Upper LA River", "Above RH", "134461.4", "NLAR9"),
+    riverNode("Upper LA River", "Above RH", "131928.4", "NLAR10"),
+    riverNode("Upper LA River", "Above RH", "145301.6", "NLAR11"),
+    riverNode("Upper LA River", "Above RH", "141205.9", "NLAR12"),
+    riverNode("Compton Creek", "CC", "11915.27", "NCC1"),
+    riverNode("Compton Creek", "CC", "14000", "NCC2"),
+    riverNode("Upper LA River", "Above RH", "167249.1", "NLAR13"),
+    riverNode("Compton Creek", "CC", "9500", "NCC3"),
+    riverNode("LA River", "Below CC", "15424", "NLAR14"),
+    riverNode("LA River", "Below CC", "14700", "NLAR15"),
+    riverNode("Compton Creek", "CC", "16327.43", "NCC4"),
+    riverNode("Compton Creek", "CC", "19888.25", "NCC5"),
+    riverNode("LA River", "Below CC", "12500", "NLAR16"),
+    riverNode("Upper LA River", "Above RH", "230128.0", "Sepulveda1"),
+    riverNode("Compton Creek", "CC", "31557.4*", "CP2A"),
+    riverNode("Rio Hondo Chnl", "RHC", "22767", "RHD2B")
+]"""
+
+# Reporting nodes
+
+NODES = [
+    riverNode("LA River", "Below CC", "1600", "LA1"),
+    riverNode("LA River", "Below CC", "14700", "LA2"),
+    riverNode("LA River", "Below CC", "20635", "F319"), # empirical data available
+    riverNode("Upper LA River", "RH to CC", "37900", "LA3"),
+    riverNode("Upper LA River", "Above RH", "69889*", "F34D"), # empirical data available
+    riverNode("Upper LA River", "Above RH", "112999*", "LA8"),
+    riverNode("Upper LA River", "Above RH", "130061.4", "F57C"), # empirical data available
+    riverNode("Upper LA River", "Above RH", "141205.9", "LA11"),
+    riverNode("Upper LA River", "Above RH", "156292.5", "GLEN"),
+    riverNode("Upper LA River", "Above RH", "161543.9", "LA13"),
+    riverNode("Upper LA River", "Above RH", "169278.5", "LA14"),
+    riverNode("Upper LA River", "Above RH", "195046.0", "F300"), # emp.
+    riverNode("Upper LA River", "Above RH", "235724.5", "LA20_2"), # stationing?
+    # LA20
+    riverNode("Compton Creek", "CC", "11915.27", "F37B_Low"),
+    riverNode("Compton Creek", "CC", "22616", "F37B_High"),
+    riverNode("Rio Hondo Chnl", "RHC", "6270", "F45B"), # emp.
+    # 11101250
 ]
+
 
 flowNodes = [
     riverNode("Compton Creek", "CC", "52494.08"),
@@ -141,7 +189,7 @@ if __name__ == "__main__":
         with open("V:\\LosAngelesProjectsData\\HEC-RAS\\Full Model\\FullModel.f05", "w") as f:
             f.write(text)
     if parse:
-        convertCSV(NODES, entries = ENTRIES, inpath = PATH, outpath = OUTPATH, selective = True, swmm = True)
+        convertCSV(NODES, entries = ENTRIES, inpath = PATH, outpath = OUTPATH, selective = False, swmm = True)
     if makeCSV:
         flows = [1, 10, 100, 1000, 10000]
         nodes = [

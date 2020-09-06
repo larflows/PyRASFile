@@ -145,14 +145,31 @@ def entries(profile):
     # Data starts on row 3 and continues through row 17
     data = profile.split("\n")[2:17]
     output = {}
+    reachedElem = False
     for row in data:
         items = [i.strip() for i in row.split("  ") if i != ""] # Separate items are always separated by multiple spaces
-        # There are two rows that have three entries for the right-hand items, but we don't need either, so
-        # we can ignore that.
-        # Otherwise, they are all two key-value pairs.
         if len(items) >= 4: # Sometimes something seems to be missing from the row
             output[items[0]] = items[1]
-            output[items[2]] = items[3]
+            if not reachedElem:
+                output[items[2]] = items[3]
+            else: # ROB/LOB
+                # PROBLEM: Sometimes there are only 2 of the 3 - how to decide which to fill?
+                if len(items) >= 6: # LOB, MC, ROB
+                    output[items[2] + ".LOB"] = items[3]
+                    output[items[2] + ".MC"] = items[4]
+                    output[items[2] + ".ROB"] = items[5]
+                elif len(items) == 5: # 2 of 3
+                    # If the ROB item is missing, then there will be 14 spaces after the MC item (items[5])
+                    # If there are more than 3 spaces, then the ROB item is missing - say 8 spaces to be safe
+                    SPACES = " "*8
+                    lob = row.endswith(SPACES)
+                    output[items[2] + ".LOB"] = items[3] if lob else "NA"
+                    output[items[2] + ".MC"] = items[4] if lob else items[3]
+                    output[items[2] + ".ROB"] = items[5] if !lob else "NA"
+                else: # MC only
+                    output[items[2] + ".MC"] = items[3]
+            if items[2] == "Element":
+                reachedElem = True
     return output
 
 def parseXs(xs):
