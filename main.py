@@ -8,8 +8,8 @@ import sys
 ENTRIES = ["Q Total (cfs)", "Avg. Vel. (ft/s)", "Max Chl Dpth (ft)", "Shear (lb/sq ft)", "Stream Power (lb/ft s)"]
 
 # File path for current development
-PATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\Reports\\FullModel-HF-0904.rep"
-OUTPATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\RatingCurves\\HFResultsRep.csv"
+PATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\Reports\\FullModel-LF-0902.rep"
+OUTPATH = "C:\\Users\\Daniel\\LocalDocuments\\MinesWork\\Hydraulics\\RatingCurves\\LFResultsRep.csv"
 
 
 # Nodes to look for

@@ -165,7 +165,7 @@ def entries(profile):
                     lob = row.endswith(SPACES)
                     output[items[2] + ".LOB"] = items[3] if lob else "NA"
                     output[items[2] + ".MC"] = items[4] if lob else items[3]
-                    output[items[2] + ".ROB"] = items[5] if !lob else "NA"
+                    output[items[2] + ".ROB"] = "NA" if lob else items[4]
                 else: # MC only
                     output[items[2] + ".MC"] = items[3]
             if items[2] == "Element":
